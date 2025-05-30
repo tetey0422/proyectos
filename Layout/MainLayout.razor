@@ -1,0 +1,65 @@
+﻿@inherits LayoutComponentBase
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    main {
+        flex: 1;
+    }
+
+    .main-container {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+</style>
+
+<div class="main-container">
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-light bg-transparent mb-3 shadow">
+            <div class="container">
+                <a class="navbar-brand" asp-area="" asp-page="/Index">
+                    <img src="/CheckLab.png" alt="Logo Check Lab" class="img-fluid" style="max-height: 3rem;">
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <NavLink class="nav-link text-dark" href="/">Inicio</NavLink>
+                        </li>
+                        <li class="nav-item">
+                            <NavLink class="nav-link text-dark" href="/Servicio">Servicio</NavLink>
+                        </li>
+                        <li class="nav-item">
+                            <NavLink class="nav-link text-dark" href="/Nosotros">Nosotros</NavLink>
+                        </li>
+                        <li class="nav-item">
+                            <NavLink class="nav-link text-dark" href="/Contacto">Contacto</NavLink>
+                        </li>
+                    </ul>
+
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+
+    <footer class="footer text-black bg-secondary opacity-75 mt-auto">
+        <div class="container text-center py-2">
+            &copy; 2025 - Proyecto Integrador - Check Lab
+        </div>
+    </footer>
+</div>

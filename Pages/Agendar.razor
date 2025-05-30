@@ -1,0 +1,392 @@
+﻿@page "/Agendar"
+@using System.Globalization
+
+<style>
+    body {
+        background: url(/laboratorio.jpg);
+        overflow-x: hidden;
+        width: 100%;
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        min-height: 100vh;
+    }
+
+    .fondo-transparente {
+        background-color: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        border-radius: 1rem;
+        padding: 2rem;
+    }
+
+    .calendario {
+        background-color: rgba(255, 255, 255, 0.95);
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .dia-disponible {
+        background-color: white;
+        color: black;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .dia-disponible:hover {
+        background-color: #e3f2fd;
+        transform: scale(1.05);
+    }
+
+    .dia-no-disponible {
+        background-color: #f5f5f5;
+        color: #bbb;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    .dia-seleccionado {
+        background-color: #007bff !important;
+        color: white !important;
+    }
+
+    .indicador-disponibilidad {
+        height: 8px;
+        border-radius: 4px;
+        margin-top: 0.5rem;
+    }
+
+    .disponibilidad-alta {
+        background-color: #28a745;
+    }
+
+    .disponibilidad-media {
+        background-color: #ffc107;
+    }
+
+    .disponibilidad-baja {
+        background-color: #dc3545;
+    }
+
+    .hora-disponible {
+        background-color: white;
+        border: 2px solid #007bff;
+        color: #007bff;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .hora-disponible:hover {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .hora-ocupada {
+        background-color: #f5f5f5;
+        color: #bbb;
+        cursor: not-allowed;
+        opacity: 0.6;
+        border: 2px solid #ddd;
+    }
+
+    .hora-seleccionada {
+        background-color: #007bff !important;
+        color: white !important;
+        border-color: #007bff !important;
+    }
+
+    .btn-agendar {
+        background: linear-gradient(45deg, #007bff, #0056b3);
+        border: none;
+        box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+        transition: all 0.3s;
+    }
+
+    .btn-agendar:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+    }
+</style>
+
+<div class="container-fluid px-4">
+    <div class="text-center mb-4">
+        <h1 class="display-4 fw-bold text-primary">Agendar Cita Médica</h1>
+        <p class="lead text-muted">Selecciona la fecha y hora que mejor se adapte a tu horario</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="fondo-transparente">
+                <div class="row">
+                    <!-- Calendario -->
+                    <div class="col-md-7 mb-4">
+                        <div class="calendario p-3">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <button class="btn btn-outline-primary" @onclick="MesAnterior">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <h4 class="mb-0 text-center flex-grow-1">
+                                    @fechaActual.ToString("MMMM yyyy", new CultureInfo("es-ES"))
+                                </h4>
+                                <button class="btn btn-outline-primary" @onclick="MesSiguiente">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+
+                            <!-- Días de la semana -->
+                            <div class="row text-center fw-bold text-muted small mb-2">
+                                <div class="col">Dom</div>
+                                <div class="col">Lun</div>
+                                <div class="col">Mar</div>
+                                <div class="col">Mié</div>
+                                <div class="col">Jue</div>
+                                <div class="col">Vie</div>
+                                <div class="col">Sáb</div>
+                            </div>
+
+                            <!-- Días del mes -->
+                            @for (int semana = 0; semana < semanasDelMes.Count; semana++)
+                            {
+                                <div class="row mb-1">
+                                    @for (int dia = 0; dia < 7; dia++)
+                                    {
+                                        var fechaDia = semanasDelMes[semana][dia];
+                                        var disponibilidad = ObtenerDisponibilidad(fechaDia);
+                                        var esDelMesActual = fechaDia.Month == fechaActual.Month;
+                                        var esDiaSeleccionado = fechaSeleccionada?.Date == fechaDia.Date;
+
+                                        <div class="col p-1">
+                                            <div class="text-center p-2 rounded position-relative
+                                                 @(esDelMesActual ? 
+                                                   (disponibilidad > 0 ? 
+                                                     (esDiaSeleccionado ? "dia-seleccionado" : "dia-disponible") : 
+                                                     "dia-no-disponible") : 
+                                                   "dia-no-disponible")"
+                                                 @onclick="() => SeleccionarFecha(fechaDia)"
+                                                 style="@(esDelMesActual ? "" : "visibility: hidden;")">
+                                                @if (esDelMesActual)
+                                                {
+                                                    <div>@fechaDia.Day</div>
+                                                    @if (disponibilidad > 0)
+                                                    {
+                                                        <div class="indicador-disponibilidad
+                                                             @(disponibilidad > 20 ? "disponibilidad-alta" : 
+                                                               disponibilidad > 5 ? "disponibilidad-media" : 
+                                                               "disponibilidad-baja")"></div>
+                                                    }
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+
+                            <!-- Leyenda -->
+                            <div class="mt-3 small text-muted">
+                                <div class="d-flex justify-content-center flex-wrap gap-3">
+                                    <div><span class="indicador-disponibilidad disponibilidad-alta d-inline-block me-1" style="width: 12px; height: 12px;"></span> Alta disponibilidad</div>
+                                    <div><span class="indicador-disponibilidad disponibilidad-media d-inline-block me-1" style="width: 12px; height: 12px;"></span> Media disponibilidad</div>
+                                    <div><span class="indicador-disponibilidad disponibilidad-baja d-inline-block me-1" style="width: 12px; height: 12px;"></span> Baja disponibilidad</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Horarios disponibles -->
+                    <div class="col-md-5">
+                        <div class="h-100">
+                            @if (fechaSeleccionada != null)
+                            {
+                                <h5 class="text-center mb-3 text-primary">
+                                    Horarios para @fechaSeleccionada.Value.ToString("dddd, dd 'de' MMMM", new CultureInfo("es-ES"))
+                                </h5>
+
+                                <div class="row g-2" style="max-height: 400px; overflow-y: auto;">
+                                    @foreach (var hora in horariosDelDia)
+                                    {
+                                        var esHoraSeleccionada = horaSeleccionada == hora.Hora;
+                                        <div class="col-6 col-lg-4">
+                                            <button class="btn w-100 py-2 small
+                                                   @(hora.Disponible ? 
+                                                     (esHoraSeleccionada ? "hora-seleccionada" : "hora-disponible") : 
+                                                     "hora-ocupada")"
+                                                    @onclick="() => SeleccionarHora(hora)"
+                                                    disabled="@(!hora.Disponible)">
+                                                @hora.Hora.ToString("HH:mm")
+                                            </button>
+                                        </div>
+                                    }
+                                </div>
+
+                                @if (horaSeleccionada != null)
+                                {
+                                    <div class="mt-4 p-3 bg-light rounded">
+                                        <h6 class="text-primary mb-2">Resumen de tu cita:</h6>
+                                        <p class="mb-1"><strong>Fecha:</strong> @fechaSeleccionada.Value.ToString("dddd, dd 'de' MMMM 'de' yyyy", new CultureInfo("es-ES"))</p>
+                                        <p class="mb-1"><strong>Hora:</strong> @horaSeleccionada.Value.ToString("HH:mm")</p>
+                                        <p class="mb-3"><strong>Empleado asignado:</strong> Se asignará automáticamente</p>
+                                        
+                                        <button class="btn btn-agendar btn-primary w-100 py-3 fw-bold" @onclick="AgendarCita">
+                                            <i class="fas fa-calendar-check me-2"></i>
+                                            Confirmar Cita
+                                        </button>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="text-center text-muted mt-5">
+                                    <i class="fas fa-calendar-alt fa-3x mb-3 opacity-50"></i>
+                                    <p>Selecciona una fecha en el calendario para ver los horarios disponibles</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                @if (mostrarMensaje)
+                {
+                    <div class="alert alert-success alert-dismissible fade show mt-4" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>¡Cita agendada exitosamente!</strong> Recibirás una confirmación por correo electrónico.
+                        <button type="button" class="btn-close" @onclick="() => mostrarMensaje = false"></button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private DateTime fechaActual = DateTime.Now;
+    private DateTime? fechaSeleccionada;
+    private TimeSpan? horaSeleccionada;
+    private List<List<DateTime>> semanasDelMes = new();
+    private List<HorarioDisponible> horariosDelDia = new();
+    private bool mostrarMensaje = false;
+
+    public class HorarioDisponible
+    {
+        public TimeSpan Hora { get; set; }
+        public bool Disponible { get; set; }
+    }
+
+    protected override void OnInitialized()
+    {
+        GenerarCalendario();
+    }
+
+    private void GenerarCalendario()
+    {
+        semanasDelMes.Clear();
+        var primerDiaDelMes = new DateTime(fechaActual.Year, fechaActual.Month, 1);
+        var ultimoDiaDelMes = primerDiaDelMes.AddMonths(1).AddDays(-1);
+        
+        // Calcular el primer día a mostrar (puede ser del mes anterior)
+        var primerDiaAMostrar = primerDiaDelMes.AddDays(-(int)primerDiaDelMes.DayOfWeek);
+        
+        // Generar todas las semanas del mes
+        var fechaActualIteracion = primerDiaAMostrar;
+        while (fechaActualIteracion <= ultimoDiaDelMes || fechaActualIteracion.DayOfWeek != DayOfWeek.Sunday)
+        {
+            var semana = new List<DateTime>();
+            for (int i = 0; i < 7; i++)
+            {
+                semana.Add(fechaActualIteracion);
+                fechaActualIteracion = fechaActualIteracion.AddDays(1);
+            }
+            semanasDelMes.Add(semana);
+            
+            if (fechaActualIteracion > ultimoDiaDelMes && fechaActualIteracion.DayOfWeek == DayOfWeek.Sunday)
+                break;
+        }
+    }
+
+    private void MesAnterior()
+    {
+        fechaActual = fechaActual.AddMonths(-1);
+        fechaSeleccionada = null;
+        horaSeleccionada = null;
+        horariosDelDia.Clear();
+        GenerarCalendario();
+    }
+
+    private void MesSiguiente()
+    {
+        fechaActual = fechaActual.AddMonths(1);
+        fechaSeleccionada = null;
+        horaSeleccionada = null;
+        horariosDelDia.Clear();
+        GenerarCalendario();
+    }
+
+    private int ObtenerDisponibilidad(DateTime fecha)
+    {
+        // Simulación de disponibilidad - en producción esto vendría de la base de datos
+        if (fecha < DateTime.Today) return 0;
+        
+        var random = new Random(fecha.GetHashCode());
+        return random.Next(0, 25); // 0-24 citas disponibles
+    }
+
+    private void SeleccionarFecha(DateTime fecha)
+    {
+        if (fecha.Month != fechaActual.Month || fecha < DateTime.Today) return;
+        
+        var disponibilidad = ObtenerDisponibilidad(fecha);
+        if (disponibilidad == 0) return;
+
+        fechaSeleccionada = fecha;
+        horaSeleccionada = null;
+        GenerarHorarios();
+    }
+
+    private void GenerarHorarios()
+    {
+        horariosDelDia.Clear();
+        
+        // Generar horarios de 6:00 AM a 2:00 PM en intervalos de 20 minutos
+        var horaInicio = new TimeSpan(6, 0, 0); // 6:00 AM
+        var horaFin = new TimeSpan(14, 0, 0);   // 2:00 PM
+        var intervalo = TimeSpan.FromMinutes(20);
+
+        var horaActual = horaInicio;
+        var random = new Random(fechaSeleccionada.Value.GetHashCode());
+
+        while (horaActual <= horaFin)
+        {
+            // Simulación de disponibilidad por hora
+            var disponible = random.Next(0, 100) > 30; // 70% de probabilidad de estar disponible
+            
+            horariosDelDia.Add(new HorarioDisponible
+            {
+                Hora = horaActual,
+                Disponible = disponible
+            });
+
+            horaActual = horaActual.Add(intervalo);
+        }
+    }
+
+    private void SeleccionarHora(HorarioDisponible horario)
+    {
+        if (!horario.Disponible) return;
+        horaSeleccionada = horario.Hora;
+    }
+
+    private void AgendarCita()
+    {
+        // Aquí iría la lógica para guardar la cita en la base de datos
+        mostrarMensaje = true;
+        
+        // Limpiar selección después de agendar
+        fechaSeleccionada = null;
+        horaSeleccionada = null;
+        horariosDelDia.Clear();
+        
+        // Ocultar mensaje después de 5 segundos
+        Task.Delay(5000).ContinueWith(t => {
+            mostrarMensaje = false;
+            InvokeAsync(StateHasChanged);
+        });
+    }
+}

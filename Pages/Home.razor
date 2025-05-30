@@ -1,0 +1,32 @@
+﻿@page "/"
+
+<style>
+    body {
+        background: url(laboratorio.jpg);
+        overflow-x: hidden;
+        width: 100%;
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        min-height: 100vh;
+    }
+
+    .fondo-transparente {
+        background-color: rgba(255, 255, 255, 0.3);
+        border-radius: 1rem;
+        padding: 1rem;
+        backdrop-filter: blur(10px);
+    }
+</style>
+<div class="text-center">
+    <div class=" texto p-5">
+        <h1 class="display-2 fw-bold">Tu salud</h1>
+        <h3 class="display-4 fw-bolder">Nuestra prioridad</h3>
+    </div>
+    <div class="fondo-transparente">
+        <h5 class="fw-normal lh-lg">En ChekLab, simplificamos tu agendamiendo para que recibas atencion medica confiable sin complicaciones.</h5>
+        <NavLink class="btn btn-primary d-grid col-6 mx-auto" href="/login" role="button">
+            Ingresa a tu cuenta
+        </NavLink>
+    </div>
+</div>

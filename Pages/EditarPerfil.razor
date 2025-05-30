@@ -1,0 +1,357 @@
+﻿@page "/EditarPerfil"
+@using System.ComponentModel.DataAnnotations
+
+<style>
+    body {
+        background: url(/laboratorio.jpg);
+        overflow-x: hidden;
+        width: 100%;
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        min-height: 100vh;
+    }
+
+    .fondo-transparente {
+        background-color: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        border-radius: 1rem;
+        padding: 2rem;
+    }
+
+    .campo-readonly {
+        background-color: #f8f9fa;
+        border: 1px solid #e9ecef;
+        color: #6c757d;
+        cursor: not-allowed;
+    }
+
+    .btn-guardar {
+        background: linear-gradient(45deg, #28a745, #20c997);
+        border: none;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        transition: all 0.3s;
+    }
+
+    .btn-guardar:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+    }
+
+    .btn-cancelar {
+        background: linear-gradient(45deg, #6c757d, #495057);
+        border: none;
+        box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+        transition: all 0.3s;
+    }
+
+    .btn-cancelar:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+    }
+
+    .perfil-header {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        border-radius: 1rem 1rem 0 0;
+        margin: -2rem -2rem 2rem -2rem;
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .avatar-placeholder {
+        width: 80px;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        font-size: 2rem;
+    }
+
+    .form-section {
+        border-left: 4px solid #007bff;
+        padding-left: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .info-icon {
+        color: #17a2b8;
+        margin-right: 0.5rem;
+    }
+</style>
+
+<div class="container-fluid px-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-6">
+            <div class="fondo-transparente">
+                <!-- Header del perfil -->
+                <div class="perfil-header">
+                    <div class="avatar-placeholder">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h2 class="mb-1">@usuario.NombreCompleto</h2>
+                    <p class="mb-0 opacity-75">@usuario.TipoDocumento @usuario.NumeroDocumento</p>
+                </div>
+
+                <EditForm Model="@usuario" OnValidSubmit="@GuardarCambios" novalidate="novalidate">
+                    <DataAnnotationsValidator />
+
+                    <!-- Información Personal (Solo lectura) -->
+                    <div class="form-section">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-id-card info-icon"></i>
+                            Información Personal
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Nombre Completo</label>
+                                <input type="text" class="form-control campo-readonly" 
+                                       value="@usuario.NombreCompleto" readonly>
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Este campo no se puede modificar
+                                </small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tipo de Documento</label>
+                                <input type="text" class="form-control campo-readonly" 
+                                       value="@usuario.TipoDocumento" readonly>
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Este campo no se puede modificar
+                                </small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Número de Documento</label>
+                                <input type="text" class="form-control campo-readonly" 
+                                       value="@usuario.NumeroDocumento" readonly>
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Este campo no se puede modificar
+                                </small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Sexo</label>
+                                <input type="text" class="form-control campo-readonly" 
+                                       value="@usuario.Sexo" readonly>
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Este campo no se puede modificar
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información de Contacto (Editable) -->
+                    <div class="form-section">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-address-book info-icon"></i>
+                            Información de Contacto
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="correo" class="form-label">Correo Electrónico *</label>
+                                <InputText @bind-Value="usuario.Correo" class="form-control" id="correo" 
+                                          placeholder="ejemplo@correo.com" />
+                                <ValidationMessage For="@(() => usuario.Correo)" class="text-danger small" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="telefono" class="form-label">Número de Celular *</label>
+                                <InputText @bind-Value="usuario.Telefono" class="form-control" id="telefono" 
+                                          placeholder="3001234567" />
+                                <ValidationMessage For="@(() => usuario.Telefono)" class="text-danger small" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información de Ubicación (Editable) -->
+                    <div class="form-section">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-map-marker-alt info-icon"></i>
+                            Información de Ubicación
+                        </h5>
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <label for="direccion" class="form-label">Dirección *</label>
+                                <InputText @bind-Value="usuario.Direccion" class="form-control" id="direccion" 
+                                          placeholder="Calle 123 #45-67, Barrio" />
+                                <ValidationMessage For="@(() => usuario.Direccion)" class="text-danger small" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="ciudad" class="form-label">Ciudad *</label>
+                                <InputSelect @bind-Value="usuario.Ciudad" class="form-select" id="ciudad">
+                                    <option value="">Selecciona una ciudad</option>
+                                    <option value="Barrancabermeja">Barrancabermeja</option>
+                                    <option value="Bucaramanga">Bucaramanga</option>
+                                    <option value="Floridablanca">Floridablanca</option>
+                                    <option value="Girón">Girón</option>
+                                    <option value="Piedecuesta">Piedecuesta</option>
+                                    <option value="Lebrija">Lebrija</option>
+                                    <option value="Sabana de Torres">Sabana de Torres</option>
+                                    <option value="Puerto Wilches">Puerto Wilches</option>
+                                    <option value="San Vicente de Chucurí">San Vicente de Chucurí</option>
+                                    <option value="Otra">Otra</option>
+                                </InputSelect>
+                                <ValidationMessage For="@(() => usuario.Ciudad)" class="text-danger small" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="departamento" class="form-label">Departamento</label>
+                                <input type="text" class="form-control campo-readonly" id="departamento"
+                                       value="Santander" readonly>
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Por ahora solo atendemos Santander
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones de acción -->
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <button type="button" class="btn btn-cancelar text-white w-100 py-3" 
+                                    @onclick="CancelarCambios">
+                                <i class="fas fa-times me-2"></i>
+                                Cancelar Cambios
+                            </button>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <button type="submit" class="btn btn-guardar text-white w-100 py-3">
+                                <i class="fas fa-save me-2"></i>
+                                Guardar Cambios
+                            </button>
+                        </div>
+                    </div>
+
+                    @if (mostrarMensajeExito)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>¡Perfil actualizado!</strong> Tus cambios se han guardado correctamente.
+                            <button type="button" class="btn-close" @onclick="() => mostrarMensajeExito = false"></button>
+                        </div>
+                    }
+
+                    @if (mostrarMensajeError)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Error al guardar:</strong> Por favor, verifica que todos los campos estén correctos.
+                            <button type="button" class="btn-close" @onclick="() => mostrarMensajeError = false"></button>
+                        </div>
+                    }
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private UsuarioPerfil usuario = new();
+    private UsuarioPerfil usuarioOriginal = new();
+    private bool mostrarMensajeExito = false;
+    private bool mostrarMensajeError = false;
+
+    public class UsuarioPerfil
+    {
+        // Campos de solo lectura
+        public string NombreCompleto { get; set; } = "Juan Carlos Pérez González";
+        public string TipoDocumento { get; set; } = "Cédula de Ciudadanía";
+        public string NumeroDocumento { get; set; } = "12345678";
+        public string Sexo { get; set; } = "Masculino";
+
+        // Campos editables
+        [Required(ErrorMessage = "El correo electrónico es obligatorio")]
+        [EmailAddress(ErrorMessage = "Ingresa un correo electrónico válido")]
+        public string Correo { get; set; } = "juan.perez@email.com";
+
+        [Required(ErrorMessage = "El número de celular es obligatorio")]
+        [RegularExpression(@"^[3][0-9]{9}$", ErrorMessage = "Ingresa un número de celular válido (ej: 3001234567)")]
+        public string Telefono { get; set; } = "3001234567";
+
+        [Required(ErrorMessage = "La dirección es obligatoria")]
+        [MinLength(10, ErrorMessage = "La dirección debe tener al menos 10 caracteres")]
+        public string Direccion { get; set; } = "Calle 45 #23-10, Centro";
+
+        [Required(ErrorMessage = "Debes seleccionar una ciudad")]
+        public string Ciudad { get; set; } = "Barrancabermeja";
+
+        // Método para clonar el objeto (útil para restaurar valores originales)
+        public UsuarioPerfil Clonar()
+        {
+            return new UsuarioPerfil
+            {
+                NombreCompleto = this.NombreCompleto,
+                TipoDocumento = this.TipoDocumento,
+                NumeroDocumento = this.NumeroDocumento,
+                Sexo = this.Sexo,
+                Correo = this.Correo,
+                Telefono = this.Telefono,
+                Direccion = this.Direccion,
+                Ciudad = this.Ciudad
+            };
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        // Crear una copia de seguridad de los datos originales
+        usuarioOriginal = usuario.Clonar();
+    }
+
+    private async Task GuardarCambios()
+    {
+        try
+        {
+            // Aquí iría la lógica para guardar en la base de datos
+            // Por ejemplo: await UsuarioService.ActualizarPerfil(usuario);
+            
+            // Simular un pequeño delay como si fuera una llamada a API
+            await Task.Delay(1000);
+            
+            // Actualizar la copia de seguridad con los nuevos valores
+            usuarioOriginal = usuario.Clonar();
+            
+            // Mostrar mensaje de éxito
+            mostrarMensajeExito = true;
+            mostrarMensajeError = false;
+            
+            // Ocultar mensaje después de 5 segundos
+            await Task.Delay(5000);
+            mostrarMensajeExito = false;
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            // Mostrar mensaje de error
+            mostrarMensajeError = true;
+            mostrarMensajeExito = false;
+            
+            // En un entorno real, podrías loggear el error
+            // Logger.LogError(ex, "Error al guardar perfil del usuario");
+            
+            // Ocultar mensaje después de 5 segundos
+            await Task.Delay(5000);
+            mostrarMensajeError = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private void CancelarCambios()
+    {
+        // Restaurar los valores originales
+        usuario.Correo = usuarioOriginal.Correo;
+        usuario.Telefono = usuarioOriginal.Telefono;
+        usuario.Direccion = usuarioOriginal.Direccion;
+        usuario.Ciudad = usuarioOriginal.Ciudad;
+        
+        // Ocultar mensajes si están visibles
+        mostrarMensajeExito = false;
+        mostrarMensajeError = false;
+        
+        StateHasChanged();
+    }
+}
