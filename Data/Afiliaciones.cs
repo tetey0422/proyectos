@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 namespace Data
 {
-    public class Usuario
+    public class Afiliacion
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int UsuarioID { get; set; }
+        public int AfiliacionID { get; set; }
 
         [Required]
         [StringLength(50)]
@@ -22,22 +22,13 @@ namespace Data
         [StringLength(20)]
         public string Documento { get; set; }
 
-        [Required]
-        [StringLength(255)]
-        public string Contraseña { get; set; }
-
-        public int RolID { get; set; }
+        public int EPSID { get; set; }
 
         [StringLength(20)]
         public string Estado { get; set; }
 
         // Navigation properties
-        [ForeignKey("RolID")]
-        public virtual Rol Rol { get; set; }
-
-        public virtual ICollection<Paciente> Pacientes { get; set; }
-        public virtual ICollection<Enfermero> Enfermeros { get; set; }
-        public virtual ICollection<Notificacion> Notificaciones { get; set; }
-        public virtual ICollection<LogSistema> LogsSistema { get; set; }
+        [ForeignKey("EPSID")]
+        public virtual EPS EPS { get; set; }
     }
 }

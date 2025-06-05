@@ -8,12 +8,17 @@ using System.Threading.Tasks;
 
 namespace Data
 {
-    public class TipoUsuario
+    public class EstadoCita
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int IdTipoUsuario { get; set; }
+        public int EstadoID { get; set; }
 
-        public string TipoUsuarioCita { get; set; }
+        [Required]
+        [StringLength(100)]
+        public string Descripcion { get; set; }
+
+        // Navigation properties
+        public virtual ICollection<Cita> Citas { get; set; }
     }
 }
