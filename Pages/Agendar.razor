@@ -1,5 +1,8 @@
 ﻿@page "/agendar"
 @using System.Globalization
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
 
 <style>
     body {
@@ -119,15 +122,18 @@
     }
 
     @@keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
+        from
 
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
     }
 
     .loading-spinner {
@@ -141,13 +147,23 @@
     }
 
     @@keyframes spin {
-        0% {
-            transform: rotate(0deg);
-        }
+        0%
 
-        100% {
-            transform: rotate(360deg);
-        }
+    {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+
+    }
+
+    .form-section {
+        background-color: rgba(255, 255, 255, 0.9);
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
     }
 </style>
 
@@ -160,6 +176,40 @@
     <div class="row justify-content-center">
         <div class="col-lg-10">
             <div class="fondo-transparente">
+                <!-- Formulario de datos del paciente -->
+                <div class="form-section mb-4">
+                    <h5 class="text-primary mb-3"><i class="fas fa-user me-2"></i>Datos del Paciente</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="documento" class="form-label">Documento de Identidad *</label>
+                            <input type="text" class="form-control" id="documento" @bind="pacienteDocumento"
+                                   placeholder="Ingrese su documento" required />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="especialidad" class="form-label">Especialidad (Opcional)</label>
+                            <select class="form-select" id="especialidad" @bind="especialidadSeleccionada">
+                                <option value="">Consulta General</option>
+                                @foreach (var especialidad in especialidades)
+                                {
+                                    <option value="@especialidad.Id">@especialidad.Nombre</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="motivo" class="form-label">Motivo de la Consulta</label>
+                            <input type="text" class="form-control" id="motivo" @bind="motivoConsulta"
+                                   placeholder="Breve descripción del motivo" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="observaciones" class="form-label">Observaciones</label>
+                            <input type="text" class="form-control" id="observaciones" @bind="observaciones"
+                                   placeholder="Información adicional" />
+                        </div>
+                    </div>
+                </div>
+
                 <div class="row">
                     <!-- Calendario -->
                     <div class="col-md-7 mb-4">
@@ -200,10 +250,10 @@
 
                                         <div class="col p-1">
                                             <div class="dia-calendario text-center p-2 rounded
-                                                                         @(esDelMesActual ?
-                                                                                                                                                                                                      (esDiaPasado ? "dia-pasado" :
-                                                                                                                                                                                                       (esDiaSeleccionado ? "dia-seleccionado" : "dia-disponible")) :
-                                                                                                                                                                                                      "dia-no-disponible")"
+                                                         @(esDelMesActual ?
+                                                                                                    (esDiaPasado ? "dia-pasado" :
+                                                                                                     (esDiaSeleccionado ? "dia-seleccionado" : "dia-disponible")) :
+                                                                                                    "dia-no-disponible")"
                                          @onclick="() => SeleccionarFecha(fechaDia)"
                                          style="@(esDelMesActual ? "" : "visibility: hidden;")">
                                         @if (esDelMesActual)
@@ -243,9 +293,9 @@
                                                 var esHoraSeleccionada = horaSeleccionada == hora.Hora;
                                                 <div class="col-6 col-lg-4">
                                                     <button class="btn w-100 py-2 small
-                                                                                               @(hora.Disponible ?
-                                                                                                                                                                                                                                                 (esHoraSeleccionada ? "hora-seleccionada" : "hora-disponible") :
-                                                                                                                                                                                                                                                 "hora-ocupada")"
+                                                                         @(hora.Disponible ?
+                                                                                                                           (esHoraSeleccionada ? "hora-seleccionada" : "hora-disponible") :
+                                                                                                                           "hora-ocupada")"
                                                 @onclick="() => SeleccionarHora(hora)"
                                                 disabled="@(!hora.Disponible)">
                                             @hora.Hora.ToString("HH:mm")
@@ -260,11 +310,16 @@
                                                 <h6 class="text-primary mb-2">Resumen de tu cita:</h6>
                                                 <p class="mb-1"><strong>Fecha:</strong> @fechaSeleccionada.Value.ToString("dddd, dd 'de' MMMM 'de' yyyy", new CultureInfo("es-ES"))</p>
                                                 <p class="mb-1"><strong>Hora:</strong> @horaSeleccionada.Value.ToString("HH:mm")</p>
+                                                <p class="mb-1"><strong>Documento:</strong> @pacienteDocumento</p>
+                                                @if (!string.IsNullOrEmpty(motivoConsulta))
+                                                {
+                                                    <p class="mb-1"><strong>Motivo:</strong> @motivoConsulta</p>
+                                                }
                                                 <p class="mb-3"><strong>Empleado asignado:</strong> Se asignará automáticamente</p>
 
                                                 <button class="btn btn-agendar btn-primary w-100 py-3 fw-bold"
                                                         @onclick="AgendarCita"
-                                                        disabled="@agendandoCita">
+                                                        disabled="@(agendandoCita || string.IsNullOrEmpty(pacienteDocumento))">
                                                     @if (agendandoCita)
                                                     {
                                                         <div class="loading-spinner me-2"></div>
@@ -299,11 +354,15 @@
                         <strong>¡Cita agendada exitosamente!</strong>
                         @if (!string.IsNullOrEmpty(mensajeConfirmacion))
                         {
+                            <br />
+                    
                             <span>@mensajeConfirmacion</span>
                         }
-                        else
+                        @if (!string.IsNullOrEmpty(empleadoAsignado))
                         {
-                            <span>Recibirás una confirmación por correo electrónico.</span>
+                            <br />
+                    
+                            <span><strong>Empleado asignado:</strong> @empleadoAsignado</span>
                         }
                         <button type="button" class="btn-close" @onclick="() => mostrarMensaje = false"></button>
                     </div>
@@ -323,34 +382,53 @@
 </div>
 
 @code {
+    // Variables del calendario
     private DateTime fechaActual = DateTime.Now;
     private DateTime? fechaSeleccionada;
     private TimeSpan? horaSeleccionada;
     private List<List<DateTime>> semanasDelMes = new();
     private List<HorarioDisponible> horariosDelDia = new();
+
+    // Variables del formulario
+    private string pacienteDocumento = "";
+    private string motivoConsulta = "";
+    private string observaciones = "";
+    private int? especialidadSeleccionada;
+    private List<EspecialidadDto> especialidades = new();
+
+    // Variables de estado
     private bool mostrarMensaje = false;
     private bool mostrarError = false;
     private bool cargandoHorarios = false;
     private bool agendandoCita = false;
     private string mensajeConfirmacion = "";
     private string mensajeError = "";
+    private string empleadoAsignado = "";
 
+    // DTOs que coinciden con el backend
     public class HorarioDisponible
     {
         public TimeSpan Hora { get; set; }
         public bool Disponible { get; set; }
     }
 
-    // Estructura para enviar datos al backend
+    public class EspecialidadDto
+    {
+        public int Id { get; set; }
+        public string Nombre { get; set; } = "";
+        public string Descripcion { get; set; } = "";
+    }
+
     public class CitaRequest
     {
         public DateTime Fecha { get; set; }
         public TimeSpan Hora { get; set; }
-        public string? PacienteId { get; set; } // Se puede obtener del contexto de usuario
+        public string PacienteDocumento { get; set; } = "";
+        public string? Motivo { get; set; }
         public string? Observaciones { get; set; }
+        public int? EspecialidadId { get; set; }
     }
 
-    // Estructura para recibir respuesta del backend
     public class CitaResponse
     {
         public bool Exitoso { get; set; }
@@ -359,9 +437,26 @@
         public string? EmpleadoAsignado { get; set; }
     }
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         GenerarCalendario();
+        await CargarEspecialidades();
+    }
+
+    private async Task CargarEspecialidades()
+    {
+        try
+        {
+            var response = await Http.GetFromJsonAsync<List<EspecialidadDto>>("api/agenda/especialidades");
+            if (response != null)
+            {
+                especialidades = response;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error cargando especialidades: {ex.Message}");
+        }
     }
 
     private void GenerarCalendario()
@@ -370,10 +465,8 @@
         var primerDiaDelMes = new DateTime(fechaActual.Year, fechaActual.Month, 1);
         var ultimoDiaDelMes = primerDiaDelMes.AddMonths(1).AddDays(-1);
 
-        // Calcular el primer día a mostrar (puede ser del mes anterior)
         var primerDiaAMostrar = primerDiaDelMes.AddDays(-(int)primerDiaDelMes.DayOfWeek);
 
-        // Generar todas las semanas del mes
         var fechaActualIteracion = primerDiaAMostrar;
         while (fechaActualIteracion <= ultimoDiaDelMes || fechaActualIteracion.DayOfWeek != DayOfWeek.Sunday)
         {
@@ -413,7 +506,6 @@
 
     private async Task SeleccionarFecha(DateTime fecha)
     {
-        // Solo permitir fechas del mes actual y futuras
         if (fecha.Month != fechaActual.Month || fecha.Date < DateTime.Today)
             return;
 
@@ -432,49 +524,31 @@
 
         try
         {
-            // TODO: Aquí tu compañero conectará con el backend para obtener horarios reales
-            // var horarios = await HttpClient.GetFromJsonAsync<List<HorarioDisponible>>($"api/horarios/{fechaSeleccionada:yyyy-MM-dd}");
+            var fechaFormateada = fechaSeleccionada.Value.ToString("yyyy-MM-dd");
+            var response = await Http.GetFromJsonAsync<List<HorarioDisponible>>($"api/agenda/horarios/{fechaFormateada}");
 
-            // Por ahora, generar horarios localmente (todos disponibles)
-            await Task.Delay(500); // Simular carga
-            GenerarHorariosDisponibles();
+            if (response != null)
+            {
+                horariosDelDia = response;
+            }
+            else
+            {
+                horariosDelDia.Clear();
+                mostrarError = true;
+                mensajeError = "No se pudieron cargar los horarios disponibles.";
+            }
         }
         catch (Exception ex)
         {
-            // Manejar errores de conexión con el backend
             mostrarError = true;
             mensajeError = "Error al cargar horarios disponibles. Intenta nuevamente.";
             horariosDelDia.Clear();
+            Console.WriteLine($"Error cargando horarios: {ex.Message}");
         }
         finally
         {
             cargandoHorarios = false;
             StateHasChanged();
-        }
-    }
-
-    private void GenerarHorariosDisponibles()
-    {
-        horariosDelDia.Clear();
-
-        // Generar horarios de 6:00 AM a 2:00 PM en intervalos de 20 minutos
-        var horaInicio = new TimeSpan(6, 0, 0); // 6:00 AM
-        var horaFin = new TimeSpan(14, 0, 0);   // 2:00 PM
-        var intervalo = TimeSpan.FromMinutes(20);
-
-        var horaActual = horaInicio;
-
-        while (horaActual <= horaFin)
-        {
-            // Por defecto, todos los horarios están disponibles
-            // TODO: Tu compañero modificará esto para verificar contra la base de datos
-            horariosDelDia.Add(new HorarioDisponible
-            {
-                Hora = horaActual,
-                Disponible = true // Siempre disponible hasta conectar con BD
-            });
-
-            horaActual = horaActual.Add(intervalo);
         }
     }
 
@@ -486,9 +560,15 @@
 
     private async Task AgendarCita()
     {
-        if (fechaSeleccionada == null || horaSeleccionada == null) return;
+        if (fechaSeleccionada == null || horaSeleccionada == null || string.IsNullOrEmpty(pacienteDocumento))
+        {
+            mostrarError = true;
+            mensajeError = "Por favor complete todos los campos requeridos.";
+            return;
+        }
 
         agendandoCita = true;
+        mostrarError = false;
         StateHasChanged();
 
         try
@@ -497,47 +577,61 @@
             {
                 Fecha = fechaSeleccionada.Value,
                 Hora = horaSeleccionada.Value,
-                // PacienteId = ObtenerUsuarioActual(), // TODO: Implementar
-                Observaciones = ""
+                PacienteDocumento = pacienteDocumento.Trim(),
+                Motivo = string.IsNullOrWhiteSpace(motivoConsulta) ? null : motivoConsulta.Trim(),
+                Observaciones = string.IsNullOrWhiteSpace(observaciones) ? null : observaciones.Trim(),
+                EspecialidadId = especialidadSeleccionada
             };
 
-            // TODO: Aquí tu compañero implementará la llamada al backend
-            /*
-            var response = await HttpClient.PostAsJsonAsync("api/citas", citaRequest);
-            var resultado = await response.Content.ReadFromJsonAsync<CitaResponse>();
+            var response = await Http.PostAsJsonAsync("api/agenda/citas", citaRequest);
 
-            if (resultado?.Exitoso == true)
+            if (response.IsSuccessStatusCode)
             {
-                mostrarMensaje = true;
-                mensajeConfirmacion = resultado.Mensaje;
-                LimpiarSeleccion();
-                await CargarHorarios(); // Recargar horarios para reflejar la nueva cita
+                var resultado = await response.Content.ReadFromJsonAsync<CitaResponse>();
+
+                if (resultado?.Exitoso == true)
+                {
+                    mostrarMensaje = true;
+                    mensajeConfirmacion = resultado.Mensaje;
+                    empleadoAsignado = resultado.EmpleadoAsignado ?? "";
+
+                    // Limpiar formulario y recargar horarios
+                    LimpiarFormulario();
+                    await CargarHorarios();
+
+                    // Auto-ocultar mensaje después de 10 segundos
+                    _ = Task.Delay(10000).ContinueWith(async t =>
+                    {
+                        mostrarMensaje = false;
+                        await InvokeAsync(StateHasChanged);
+                    });
+                }
+                else
+                {
+                    mostrarError = true;
+                    mensajeError = resultado?.Mensaje ?? "Error desconocido al agendar la cita.";
+                }
             }
             else
             {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                try
+                {
+                    var errorResponse = await response.Content.ReadFromJsonAsync<CitaResponse>();
+                    mensajeError = errorResponse?.Mensaje ?? "Error al comunicarse con el servidor.";
+                }
+                catch
+                {
+                    mensajeError = "Error al comunicarse con el servidor.";
+                }
                 mostrarError = true;
-                mensajeError = resultado?.Mensaje ?? "Error desconocido al agendar la cita.";
             }
-            */
-
-            // Simulación temporal hasta conectar con backend
-            // await Task.Delay(1000);
-            // mostrarMensaje = true;
-            // mensajeConfirmacion = $"Cita confirmada para el {fechaSeleccionada.Value:dd/MM/yyyy} a las {horaSeleccionada.Value:HH:mm}";
-
-            // LimpiarSeleccion();
-
-            // Auto-ocultar mensaje después de 5 segundos
-            _ = Task.Delay(5000).ContinueWith(async t =>
-            {
-                mostrarMensaje = false;
-                await InvokeAsync(StateHasChanged);
-            });
         }
         catch (Exception ex)
         {
             mostrarError = true;
             mensajeError = $"Error al conectar con el servidor: {ex.Message}";
+            Console.WriteLine($"Error agendando cita: {ex.Message}");
         }
         finally
         {
@@ -546,10 +640,12 @@
         }
     }
 
-    // TODO: Método para obtener el usuario actual del contexto de autenticación
-    // private string ObtenerUsuarioActual()
-    // {
-    //     // Implementar lógica de autenticación
-    //     return "usuario-id";
-    // }
+    private void LimpiarFormulario()
+    {
+        pacienteDocumento = "";
+        motivoConsulta = "";
+        observaciones = "";
+        especialidadSeleccionada = null;
+        LimpiarSeleccion();
+    }
 }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Data
 {
-    public class Usuario
+    public class Empleado
     {
         public string Documento { get; set; }
         public string Nombre { get; set; }
@@ -20,7 +20,7 @@ namespace Data
         public string Direccion { get; set; }
         public string Barrio { get; set; }
         public DateTime? FechaNacimiento { get; set; }
-        public string Password { get; set; }
+        public string Profesion { get; set; }
         public string Estado { get; set; }
         public DateTime FechaCreacion { get; set; }
         public DateTime FechaActualizacion { get; set; }

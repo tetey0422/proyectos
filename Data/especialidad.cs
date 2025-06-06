@@ -8,17 +8,13 @@ using System.Threading.Tasks;
 
 namespace Data
 {
-    public class EstadoCita
+    public class Especialidad
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int EstadoID { get; set; }
-
-        [Required]
-        [StringLength(100)]
+        public int Id { get; set; }
+        public string Nombre { get; set; }
         public string Descripcion { get; set; }
-
-        // Navigation properties
-        public virtual ICollection<Cita> Citas { get; set; }
+        public string Estado { get; set; }
+        public DateTime FechaCreacion { get; set; }
+        public DateTime FechaActualizacion { get; set; }
     }
 }
